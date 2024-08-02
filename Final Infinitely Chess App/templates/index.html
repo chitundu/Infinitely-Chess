@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinitely Chess</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f7f6f2;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .menu-icon, .profile-icon {
+            font-size: 24px;
+            color: #333;
+        }
+        .menu-icon a, .profile-icon a {
+            text-decoration: none;
+            color: inherit;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .infinity-symbol {
+            font-size: 55px;
+        }
+        h1 {
+            font-size: 24px;
+            margin: 10px 0;
+        }
+        p {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 13px;
+        }
+        .level-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .level-button {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 13.5px;
+            cursor: pointer;
+        }
+        .input-container {
+            display: flex;
+            align-items: center;
+            background-color: #f0f0f0;
+            border-radius: 15px;
+            padding: 5px 15px;
+            margin-bottom: 20px;
+            font-size: small;
+        }
+        input[type="text"] {
+            flex-grow: 1;
+            border: none;
+            background: transparent;
+            padding: 10px;
+            font-size: 13px;
+            outline: none;
+            font-style: italic;
+        }
+        .send-icon {
+            color: #333;
+            font-size: 25px;
+            cursor: pointer;
+        }
+        #chat-area {
+            max-height: 1000px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            scroll-behavior: smooth;
+        }
+        .chat-message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background-color: #b17fa6;
+            text-align: right;
+            font-size: small;
+            border-width:auto;
+            
+        }
+        .bot-message {
+            background-color: #f0f0f0;
+            text-align: left;
+            font-size: small;
+            font-display: auto;
+            font-variant-alternates: character-variant(alternate);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <span class="menu-icon" data-hint="practice"><a href="/practice">☰</a></span>
+            <span class="profile-icon"><a href="/profile">👤</a></span>
+        </div>
+        <div class="logo">
+            <div class="infinity-symbol">∞</div>
+            <h1>Infinitely Chess</h1>
+        </div>
+        <p>I'm here to help you with whatever you need to learn about Chess. Let's checkmate!</p>
+        <div class="level-buttons">
+            <button class="level-button" onclick="selectLevel('Newbie')">Newbie</button>
+            <button class="level-button" onclick="selectLevel('Beginner')">Beginner</button>
+            <button class="level-button" onclick="selectLevel('Intermediate')">Intermediate</button>
+            <button class="level-button" onclick="selectLevel('Advanced')">Advanced</button>
+        </div>
+        <div id="chat-area"></div>
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="Ask me anything about Chess...">
+            <span class="send-icon" onclick="sendMessage()">➤</span>
+        </div>
+    </div>
+
+    <script>
+        function selectLevel(level) {
+            let message = "";
+            switch(level) {
+                case "Newbie":
+                    message = "Welcome, Newbie! Let's start with the basics. The chessboard is set up with 16 pieces for each player. The front row consists of 8 pawns. Behind them, from the edges inward, are: Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook. Would you like to learn about how each piece moves?";
+                    break;
+                case "Beginner":
+                    message = "Great choice for a Beginner! Let's dive into some fundamental strategies. One important concept is controlling the center of the board. This gives your pieces more mobility and influence. Would you like to learn about some opening moves that help control the center?";
+                    break;
+                case "Intermediate":
+                    message = "Welcome, Intermediate player! At this level, we can explore more complex strategies. What would you like to focus on? Some options are: tactical combinations, positional play, or endgame techniques.";
+                    break;
+                case "Advanced":
+                    message = "Hello, Advanced player! I'm excited to delve into high-level chess concepts with you. What specific area would you like to explore? We could discuss advanced opening theory, complex middlegame positions, or intricate endgame studies.";
+                    break;
+            }
+            addBotMessage(message);
+        }
+
+        function sendMessage() {
+            const userInput = document.getElementById('user-input');
+            const message = userInput.value.trim();
+            if (message) {
+                addUserMessage(message);
+                userInput.value = '';
+
+                fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({message: message}),
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error from server:', data.error);
+                        addBotMessage("I apologize, but I'm having trouble processing your request right now. Could you please try asking your chess question again?");
+                    } else {
+                        addBotMessage(data.response);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Fetch Error:', error);
+                    addBotMessage("I'm sorry, but I'm experiencing some technical difficulties. Please try asking your chess question again in a moment.");
+                });
+            }
+        }
+
+        function addUserMessage(message) {
+            const chatArea = document.getElementById('chat-area');
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('chat-message', 'user-message');
+            messageElement.textContent = message;
+            chatArea.appendChild(messageElement);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function addBotMessage(message) {
+            const chatArea = document.getElementById('chat-area');
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('chat-message', 'bot-message');
+            messageElement.innerHTML = message; // Use innerHTML to preserve HTML formatting
+            chatArea.appendChild(messageElement);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function testServerConnection() {
+            console.log('Starting server connection test...');
+            fetch('/test')
+                .then(response => {
+                    console.log('Received response:', response);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Server test response:', data);
+                    alert('Server connection test successful!');
+                })
+                .catch(error => {
+                    console.error('Server test error:', error);
+                    alert('Server connection test failed. Check the console for details.');
+                });
+        }
+
+        // Event listener for Enter key in the input field
+        document.getElementById('user-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Call this function when the page loads
+        window.onload = function() {
+            testServerConnection();
+        };
+    </script>
+</body>
+</html>
