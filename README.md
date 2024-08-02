@@ -148,14 +148,3 @@ To use the chat functionality, send a POST request to `/chat` with the following
 
 The application uses Python's built-in `logging` module to log important events and errors. Logs include information about incoming requests, API interactions, and error messages.
 
-## Contact
-
-For any questions or issues, please contact [your email].
-
-## License
-
-This project is licensed under the MIT License.
-
----
-
-Feel free to customize this README file as per your project's requirements.
